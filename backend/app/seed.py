@@ -132,6 +132,8 @@ def 初始化库() -> None:
             "断档处置": "记断档并继续",
             "缺前日策略": "以零为开端",
             "重复抽取": "盖写同日快照",
+            "重试预算上限": "2",
+            "预算耗尽口径": "诊断批",
         }.items():
             conn.execute("INSERT INTO 台参(键, 值) VALUES (?, ?)", (k, v))
     if conn.execute("SELECT COUNT(*) AS c FROM 账户").fetchone()["c"] == 0:
@@ -144,5 +146,9 @@ def 初始化库() -> None:
                 "INSERT INTO 账户(账户键, 户名, 币种, 开户营业日, 状态) VALUES (?,?,?,?,?)",
                 (键, 名, "CNY", 日, "正常"),
             )
+    # 抽取重试预算：预算账本/账录/诊断批等实体与兼容补列（幂等）。
+    from app.modules.抽取重试预算 import 建表 as 建预算表
+
+    建预算表(conn)
     conn.commit()
     conn.close()
